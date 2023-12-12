@@ -14,5 +14,5 @@ public interface ProposerInterface extends Remote {
    * @param proposalValue The value being proposed.
    * @throws RemoteException If a remote invocation error occurs.
    */
-  void propose(int proposalId, Object proposalValue) throws RemoteException;
+  String propose(int proposalId, Object proposalValue) throws RemoteException;
 }

@@ -61,27 +61,18 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
   }
 
   @Override
-  public synchronized void get(String key) throws RemoteException {
-    proposeOperation(new Operation("GET", key));
+  public synchronized String get(String key) throws RemoteException {
+    return proposeOperation(new Operation("GET", key));
   }
 
   @Override
-  public synchronized void put(String key, String value) throws RemoteException {
-    proposeOperation(new Operation("PUT", key, value));
+  public synchronized String put(String key, String value) throws RemoteException {
+    return proposeOperation(new Operation("PUT", key, value));
   }
 
   @Override
-  public synchronized void delete(String key) throws RemoteException {
-    proposeOperation(new Operation("DELETE", key, null));
-  }
-
-  @Override
-  public void receiveClientResponse(String response) throws RemoteException {
-    this.response = response;
-  }
-
-  public String setResponse() {
-    return this.response;
+  public synchronized String delete(String key) throws RemoteException {
+    return proposeOperation(new Operation("DELETE", key, null));
   }
 
   /**
@@ -89,9 +80,9 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
    * @param operation The operation to be proposed.
    * @throws RemoteException If a remote error occurs.
    */
-  private synchronized void proposeOperation(Operation operation) throws RemoteException {
+  private synchronized String proposeOperation(Operation operation) throws RemoteException {
     int proposalId = generateProposalId();
-    propose(proposalId, operation);
+    return propose(proposalId, operation);
   }
 
   @Override
@@ -134,8 +125,8 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
       // If timeout mechanism is disabled, never simulate failure
       return false;
     }
-    // Simulate acceptor failure with 50% probability
-    return new Random().nextDouble() < 0.5;
+    // Simulate acceptor failure with 10% probability
+    return new Random().nextDouble() < 0.1;
   }
 
   /**
@@ -179,8 +170,7 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
 
 
   @Override
-  public synchronized void propose(int proposalId, Object proposalValue) throws RemoteException {
-    System.out.println(Utils.getCurrentTimestamp() + ", Server " + serverId + " proposing operation: " + ((Operation) proposalValue).toString());
+  public synchronized String propose(int proposalId, Object proposalValue) throws RemoteException {
     // Implement Paxos propose logic here
     int prepareCount = 0;
     for (int i = 0; i < numServers; i++) {
@@ -207,24 +197,26 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
         }
       }
     }
+    return Utils.getCurrentTimestamp() + ", Server " + serverId + " receiving proposing operation: " + ((Operation) proposalValue).toString();
   }
 
   @Override
-  public synchronized void learn(int proposalId, Object acceptedValue) throws RemoteException {
+  public synchronized String learn(int proposalId, Object acceptedValue) throws RemoteException {
     // Implement Paxos learn logic here
     if (proposalId >= highestAcceptedProposalId) {
       highestAcceptedProposalId = proposalId;
       acceptedProposalValue = (Operation) acceptedValue;
-      applyOperation(acceptedProposalValue);
+      return applyOperation(acceptedProposalValue);
     }
+    return "";
   }
 
   /**
    * Apply the given operation to the key-value store.
    * @param operation The operation to apply.
    */
-  private synchronized void applyOperation(Operation operation) {
-    if (operation == null) return;
+  private synchronized String applyOperation(Operation operation) {
+    if (operation == null) return Utils.getCurrentTimestamp() + "No Operation sent";
     switch (operation.type) {
       case "GET":
         if (!kvStore.containsKey(operation.key)) {
@@ -252,11 +244,7 @@ public class Server implements ProposerInterface, AcceptorInterface, LearnerInte
       default:
         throw new IllegalArgumentException("Unknown operation type: " + operation.type);
     }
-    System.out.println(Utils.getCurrentTimestamp() + ", " + this.response);
-  }
-
-  public String printReceivedOperation(Operation operation) {
-    return Utils.getCurrentTimestamp() + ", Received operation in Server " + serverId + ": " + operation.toString();
+    return Utils.getCurrentTimestamp() + ", " + this.response;
   }
 
   /**

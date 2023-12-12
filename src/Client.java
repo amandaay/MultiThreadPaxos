@@ -18,8 +18,7 @@ public class Client {
   public String get(String key) {
     try {
       // Invoke the remote GET method on the server
-      server.get(key);
-      return Utils.getCurrentTimestamp() + ", receiving GET " + key;
+      return server.get(key);
     } catch (RemoteException e) {
       // Handle RemoteException if the operation fails
       return "GET operation failed: " + e.getMessage();
@@ -29,17 +28,8 @@ public class Client {
   // Method to perform a PUT operation and return the result
   public String put(String key, String value) {
     try {
-      // Construct the PUT operation string
-      String operation = "PUT " + key + " " + value;
-
       // Invoke the remote PUT method on the server
-      server.put(key, value);
-
-      // Send the client response to the server
-      sendClientResponseToServer(operation);
-
-      // Return the result with the current timestamp
-      return Utils.getCurrentTimestamp() + ", receiving " + operation;
+      return server.put(key, value);
     } catch (RemoteException e) {
       // Handle RemoteException if the operation fails
       return "PUT operation failed: " + e.getMessage();
@@ -50,22 +40,10 @@ public class Client {
   public String delete(String key) {
     try {
       // Invoke the remote DELETE method on the server
-      server.delete(key);
-      return Utils.getCurrentTimestamp() + ", receiving DELETE " + key;
+      return server.delete(key);
     } catch (RemoteException e) {
       // Handle RemoteException if the operation fails
       return "DELETE operation failed: " + e.getMessage();
-    }
-  }
-
-  // Helper method to send a client response to the server
-  private void sendClientResponseToServer(String operation) {
-    try {
-      // Invoke the remote method on the server to receive the client response
-      server.receiveClientResponse(Utils.getCurrentTimestamp() + ", receiving " + operation);
-    } catch (RemoteException e) {
-      // Handle RemoteException if the operation fails
-      System.err.println("Failed to send client response to the server: " + e.getMessage());
     }
   }
 
@@ -138,6 +116,7 @@ public class Client {
             }
             default -> System.out.println(timestamp + ", " + "Received an unknown operation. Try again. Or you didn't want to shut down.");
           }
+          System.out.println(response);
         }
         System.out.println(timestamp + ", Enter operation:\nPUT <key> <value> or GET <key> or DELETE <key>");
       }

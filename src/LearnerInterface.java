@@ -14,5 +14,5 @@ public interface LearnerInterface extends Remote {
    * @param acceptedValue The value that has been accepted.
    * @throws RemoteException If a remote invocation error occurs.
    */
-  void learn(int proposalId, Object acceptedValue) throws RemoteException;
+  String learn(int proposalId, Object acceptedValue) throws RemoteException;
 }
